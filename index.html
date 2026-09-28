@@ -40,8 +40,8 @@
             <p style="font-size:1.05rem; opacity:0.92;">그리고 배운 것을 <strong>직접 코드로 만들어</strong> 세상에 내놓는 개발자입니다.</p>
 
             <div class="hero-stats">
-                <div class="hero-stat"><span class="num">10</span><span class="label">개발 프로젝트</span></div>
-                <div class="hero-stat"><span class="num">4</span><span class="label">라이브 서비스</span></div>
+                <div class="hero-stat"><span class="num">9</span><span class="label">개발 프로젝트</span></div>
+                <div class="hero-stat"><span class="num">3</span><span class="label">라이브 서비스</span></div>
                 <div class="hero-stat"><span class="num">18+</span><span class="label">기술 스택</span></div>
             </div>
 
@@ -159,7 +159,7 @@
                 <span class="section-eyebrow">2025 – 2026</span>
                 <h2>개발 프로젝트</h2>
             </div>
-            <p class="section-sub">직접 기획하고 개발·배포한 소프트웨어 프로젝트입니다. 기획부터 개발, 배포까지 손수 진행했으며 4개 서비스는 실제로 운영 중입니다.</p>
+            <p class="section-sub">직접 기획하고 개발·배포한 소프트웨어 프로젝트입니다. 기획부터 개발, 배포까지 손수 진행했으며 3개 서비스는 실제로 운영 중입니다.</p>
             <div class="projects-grid" id="devGrid"></div>
         </div>
     </section>
@@ -192,7 +192,7 @@
                         <div class="cert-date">직무발명 제안서 초안 작성</div>
                     </div>
                     <div class="cert-item">
-                        <div class="cert-name">8개 소프트웨어 프로젝트 개발 · 4개 서비스 라이브 배포</div>
+                        <div class="cert-name">9개 소프트웨어 프로젝트 개발 · 3개 서비스 라이브 배포</div>
                         <div class="cert-date">Flutter 앱 · 웹 서비스 · 데이터 분석</div>
                     </div>
                     <div class="cert-item">
@@ -303,6 +303,14 @@
 
                 <div class="resume-card reveal">
                     <h3>🏅 외부 수상 · 장학</h3>
+                    <div class="cert-item">
+                        <div class="cert-name">최우수상 — SW미래채움 AISW 고교챌린지</div>
+                        <div class="cert-date">과학기술정보통신부 장관상</div>
+                    </div>
+                    <div class="cert-item">
+                        <div class="cert-name">특별상 — 자율주행경진대회</div>
+                        <div class="cert-date">성균관대학교 주최</div>
+                    </div>
                     <div class="cert-item">
                         <div class="cert-name">KPAI 재단 장학금</div>
                         <div class="cert-date">우수한 학업 성취도와 인재 잠재력을 인정받아 선정</div>
@@ -508,20 +516,23 @@ for (int k = 1; k < perms.size(); k++) {
                 note: '손 사용이 불편한 사용자의 교육 접근성을 높이는 데 초점을 둔 프로젝트입니다.'
             },
             {
-                emoji: '✅', accent: G.green, title: 'Dojae · 도제 출결·소통 앱', period: '2026.04 ~ 진행 중',
-                tagline: '학생·교사·관리자가 현장실습 출결, 공지, 일정, 채팅을 한 앱에서 관리하는 통합 앱',
-                desc: '학교 도제(일학습병행) 현장실습의 출결과 공지·일정·채팅을 하나로 통합한 Flutter 앱입니다. 학생이 출퇴근 인증 사진을 올리면 OCR로 입·퇴실 시간을 자동 인식하고, 교사와 관리자는 학생별 출결·지각·근무시간·이의신청을 관리합니다. 모바일뿐 아니라 Electron 데스크톱 버전까지 빌드했고, 가장 오래 다듬어 온 프로젝트입니다. 시작은 easyOCR로 출결 스크린샷을 읽던 Python 데스크톱 프로그램이었고, 이를 지금의 Flutter/Firebase 앱으로 발전시켰습니다.',
+                emoji: '✅', accent: G.green, title: 'Dojae · 도제 출결·소통 앱', period: '2026.04 ~ 운영 중',
+                tagline: '학생 25명·교사 8명·기업 13개가 매일 사용하는 도제 출결·소통 통합 서비스 (앱 + 웹 콘솔)',
+                desc: '산학일체형 도제학교 학생의 현장실습 출결과 공지·일정·채팅을 하나로 묶은 Flutter 앱, 그리고 교사용 Next.js 웹 관리자 콘솔입니다. 도제 출결은 회사에서 비콘을 태그하면 정부 서버에 기록되지만 조회 권한이 총괄 교사 1인에게만 있어, 담임도 학생 본인도 자기 출결을 확인할 수 없었습니다. 반장으로서 매일 아침 친구들의 스크린샷을 모아 스프레드시트에 옮겨 적던 일을 없애려고 시작했고, Python 데스크톱 프로그램 → 카카오톡 챗봇을 거쳐 지금의 앱·웹으로 발전시켰습니다. v1.2.9까지 33회 배포하며 실제로 운영하고 있습니다.',
                 features: [
-                    '출퇴근 인증 이미지 OCR로 입·퇴실 시간 자동 인식',
-                    '학생별 출결·지각·근무시간·이의신청 관리',
-                    '공지 · 일정 · 실시간 채팅',
-                    'FCM 푸시 알림 · Google Sheets 출결 동기화',
-                    '역할별(학생/교사/관리자) 보안 규칙',
+                    '비콘 등록 화면을 올리면 기기 안에서 OCR이 입·퇴실 시각을 인식 (사진은 서버에 저장하지 않음)',
+                    '지각 여부·근무시간 자동 계산, 문서 ID 고정 + 트랜잭션으로 중복 기록 차단',
+                    '출결 예외 사유·이의신청 → 담임 승인 흐름과 변경 이력 기록',
+                    '대상 지정 공지(읽음률·예약 발송·투표), 연락처 없이 되는 채팅, 통합 캘린더',
+                    '출결 통계 대시보드(출석률·지각 누적·기업별)와 월간 집계 엑셀 내보내기',
+                    '교사용 웹 관리자 콘솔 — 표·일괄 입력·변경 이력 중심 (Next.js)',
+                    'Cloud Functions 33개로 서버 검증·독촉 알림·데이터 정리·시트 동기화 자동화',
+                    'Firestore 보안 규칙 1,450줄로 학생/담임/관리자 권한 분리',
                     'iOS / Android + Electron 데스크톱 빌드'
                 ],
-                tech: ['Flutter', 'Dart', 'Electron', 'Firebase', 'Cloud Functions', 'FCM', 'ML Kit OCR', 'Google Sheets API'],
+                tech: ['Flutter', 'Dart', 'Next.js', 'TypeScript', 'Firebase', 'Cloud Functions', 'FCM', 'ML Kit OCR', 'Google Sheets API'],
                 live: null,
-                note: '1세대는 easyOCR·Google Sheets·폴더 자동감시(watchdog)·customtkinter GUI·Flask로 만든 Python 데스크톱 프로그램이었습니다. 운영 중 생길 수 있는 중복 출결·권한 우회·개인정보 노출 문제를 직접 발견해 보안 규칙·서버 검증으로 해결했습니다. (공식 소개 사이트: Dojae-info)',
+                note: '2026년 9월 기준 월 출석률 98.1%(158/161건)를 기록 중이며, 앱 43,000줄·서버 5,100줄·보안 규칙 1,450줄 규모입니다. 1세대는 easyOCR·Google Sheets·폴더 자동감시(watchdog)·customtkinter GUI·Flask로 만든 Python 데스크톱 프로그램이었습니다. 운영 중 아이폰에서 저장 후 로딩이 끝나지 않는 문제를 추적해 원인이 인증 사진 업로드 단계임을 찾았고, 저장 용량의 약 80%가 출결 사진이라는 점을 확인해 업로드 자체를 제거하는 것으로 무한 로딩과 비용 문제를 함께 해결했습니다. 채팅 미리보기·안 읽음 수·시스템 메시지를 클라이언트가 위조할 수 있던 구조도 서버 권한으로 옮겨 차단했습니다. 개인정보처리방침을 직접 작성해 운영 중입니다.',
                 code: { file: 'main.py · 1세대 OCR 시간 추출', id: 'code-dojae' }
             },
             {
@@ -611,20 +622,6 @@ for (int k = 1; k < perms.size(); k++) {
                 ],
                 tech: ['Vite', 'JavaScript', 'Firebase Auth', 'Firestore', 'Firebase Hosting'],
                 live: 'https://ghas-quiz.web.app'
-            },
-            {
-                emoji: '🌐', accent: G.grass, title: 'Dojae-info · 앱 소개 홈페이지', period: '2026.06',
-                tagline: 'Dojae 앱의 공식 소개·다운로드 홈페이지 (접속 OS 자동 감지 다운로드)',
-                desc: 'Dojae 앱을 소개하고 배포하기 위한 공식 홈페이지입니다. 한 페이지 스크롤로 제작 배경·기능·사용법·다운로드를 보여주며, 접속한 운영체제를 자동으로 감지해 알맞은 설치 파일이나 스토어로 안내합니다. Next.js 정적 export로 빌드해 Firebase Hosting에 배포했습니다.',
-                features: [
-                    '한 페이지 스크롤 소개 (배경·기능·사용법·다운로드·제작자)',
-                    '접속 OS 자동 감지 다운로드 (Windows .exe / macOS .dmg / iOS·Android 스토어)',
-                    '라이트 / 다크 모드 토글',
-                    '반응형 레이아웃 (모바일 햄버거 메뉴)',
-                    '개인정보처리방침 별도 페이지'
-                ],
-                tech: ['Next.js 15', 'React 19', 'Tailwind CSS', 'Firebase Hosting'],
-                live: 'https://dojae-info.web.app'
             }
         ];
 
