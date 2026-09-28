@@ -40,7 +40,7 @@
             <p style="font-size:1.05rem; opacity:0.92;">그리고 배운 것을 <strong>직접 코드로 만들어</strong> 세상에 내놓는 개발자입니다.</p>
 
             <div class="hero-stats">
-                <div class="hero-stat"><span class="num">9</span><span class="label">개발 프로젝트</span></div>
+                <div class="hero-stat"><span class="num">10</span><span class="label">개발 프로젝트</span></div>
                 <div class="hero-stat"><span class="num">3</span><span class="label">라이브 서비스</span></div>
                 <div class="hero-stat"><span class="num">18+</span><span class="label">기술 스택</span></div>
             </div>
@@ -192,7 +192,7 @@
                         <div class="cert-date">직무발명 제안서 초안 작성</div>
                     </div>
                     <div class="cert-item">
-                        <div class="cert-name">9개 소프트웨어 프로젝트 개발 · 3개 서비스 라이브 배포</div>
+                        <div class="cert-name">10개 소프트웨어 프로젝트 개발 · 3개 서비스 라이브 배포</div>
                         <div class="cert-date">Flutter 앱 · 웹 서비스 · 데이터 분석</div>
                     </div>
                     <div class="cert-item">
@@ -358,6 +358,11 @@
                 <div class="modal-period" id="modalPeriod"></div>
                 <p class="modal-desc" id="modalDesc"></p>
 
+                <div id="modalGalleryWrap" style="display:none;">
+                    <div class="modal-block-title">사진</div>
+                    <div class="modal-gallery" id="modalGallery"></div>
+                </div>
+
                 <div id="modalFeaturesWrap" style="display:none;">
                     <div class="modal-block-title">핵심 기능</div>
                     <ul class="feature-list" id="modalFeatures"></ul>
@@ -485,6 +490,32 @@ for (int k = 1; k < perms.size(); k++) {
         };
 
         const devProjects = [
+            {
+                emoji: '🌊', accent: G.cyan, title: 'Flood Zero · 침수 예방 로봇', period: '2026.07 ~ 08',
+                tagline: '거름망의 낙엽·쓰레기를 AI로 인식해 자동 수거하는 침수 예방 로봇 — 고교챌린지 최우수상',
+                desc: '빗물받이 거름망에 낙엽과 생활 쓰레기가 쌓여 배수가 막히는 문제를 줄이기 위한 자동 수거 로봇입니다. 2026 SW미래채움 AI·SW 고교 챌린지에 팀 「객체지향원툴」로 참가해 만든 작품으로 최우수상(과학기술정보통신부 장관상)을 받았습니다. 정해진 시간이나 하나의 면적 임계값으로만 작동하는 일반적인 자동 거름망과 달리, 이물질이 차지한 면적과 쌓이는 속도, 실제 우천 여부, 카메라 관측 품질까지 합친 0~100점 배수 위험도를 계산해 감시 주기와 모터 속도를 실시간으로 바꾸는 것이 핵심입니다.',
+                features: [
+                    '직접 학습한 YOLO 세그멘테이션으로 낙엽 · 플라스틱 · 종이 · 캔 · 젖은 노면을 구분',
+                    '면적(최대 60점) + 분당 증가 속도(20점) + 우천 위험(20점) = 0~100점 배수 위험도',
+                    '위험 단계별 감시 주기 자동 조절 (평상시 2.0초 → 위급 0.3초, 실제 우천 0.15초)',
+                    '낮 · 역광 · 야간을 밝기와 대비로 구분하고, 야간에는 CLAHE로 국부 대비 보정',
+                    '시야 신뢰도가 35% 미만이면 불확실한 값으로 모터를 움직이지 않고 구동 보류',
+                    'Open-Meteo 예보와 카메라 판단을 함께 사용해 비가 오기 전 선제 수거',
+                    'MODI+ 독립 BLE 모듈망 2개로 승강 모터와 쓰레기통 바닥 모터를 분리 제어',
+                    '위험 점수 · 증가율 · 조명 상태 · 모터 프로파일을 보여주는 로컬 웹 관제 화면'
+                ],
+                tech: ['Python', 'OpenCV', 'YOLO', 'Ultralytics', 'PyMODI+', 'BLE', 'Open-Meteo API', 'unittest'],
+                live: null,
+                shots: [
+                    { src: 'images/aisw-award.jpg',  cap: '최우수상 · 과학기술정보통신부 장관상' },
+                    { src: 'images/aisw-robot.jpg',  cap: '본선 전시 — 팀 객체지향원툴 완성 기체' },
+                    { src: 'images/aisw-gear.jpg',   cap: '승강 관절 기어 전달부' },
+                    { src: 'images/aisw-basket.jpg', cap: '거름망 바구니와 와이어 권취부' },
+                    { src: 'images/aisw-module.jpg', cap: 'MODI+ 모듈과 상태 표시 LED' },
+                    { src: 'images/aisw-motor.jpg',  cap: '쓰레기통 바닥 기울임 모터' }
+                ],
+                note: '인식은 AI가, 안전과 동작 결정은 명시적인 제어 정책이 담당하도록 분리했습니다. 실제 모터 자동 구동은 자체 데이터로 학습한 모델이 품질 기준(mask_map50 0.5 이상)을 넘겼을 때만 허용되고, 그 전까지는 모든 모터 명령을 차단하는 안전 잠금이 기본값입니다. 제어 정책, 날씨 해석과 재시도, 설정 로딩, 적재 상태 저장, 데이터셋 분할 · 라벨 점검, 비상 정지 유지, 끼임 감지까지 단위 테스트로 검증했습니다.'
+            },
             {
                 emoji: '⛽', accent: G.emerald, title: 'Jooyou · 차계부', period: '2026.06 ~ 진행 중',
                 tagline: '주유 영수증을 촬영하면 OCR로 정보를 자동 추출하고 수식으로 검증하는 차량 주유 가계부 앱',
@@ -750,6 +781,15 @@ for (int k = 1; k < perms.size(); k++) {
             document.getElementById('modalTitle').textContent = d.title;
             document.getElementById('modalPeriod').textContent = '📅 ' + d.period;
             document.getElementById('modalDesc').textContent = d.desc;
+
+            // 사진
+            const gWrap = document.getElementById('modalGalleryWrap');
+            if (d.shots && d.shots.length) {
+                document.getElementById('modalGallery').innerHTML = d.shots.map(sh =>
+                    `<figure class="modal-shot"><img src="${esc(sh.src)}" alt="${esc(sh.cap)}" loading="lazy"><figcaption>${esc(sh.cap)}</figcaption></figure>`
+                ).join('');
+                gWrap.style.display = 'block';
+            } else { gWrap.style.display = 'none'; }
 
             // 핵심 기능
             const fWrap = document.getElementById('modalFeaturesWrap');
