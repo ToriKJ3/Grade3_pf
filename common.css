@@ -863,14 +863,18 @@ h2 {
 }
 
 .resume-card {
+    --resume-pad: 26px;
     background: var(--card);
     border-radius: var(--radius);
-    padding: 26px;
+    /* 위쪽 여백은 고정될 제목(h3)이 직접 갖는다. 카드에 padding-top이 남아 있으면
+       그만큼 제목이 아래로 밀려 고정되고, 그 틈으로 지나가는 내용이 보인다. */
+    padding: 0 var(--resume-pad) var(--resume-pad);
     border-left: 4px solid var(--brand);
     box-shadow: var(--shadow-sm);
     transition: transform 0.3s, box-shadow 0.3s;
     max-height: 520px;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .resume-card:hover {
@@ -878,15 +882,21 @@ h2 {
     box-shadow: var(--shadow-md);
 }
 
+/* 카드 안에서 스크롤할 때 제목이 상단에 고정된다.
+   배경을 깔지 않으면 지나가는 내용이 제목 글자와 겹쳐 보이므로,
+   카드와 같은 배경을 주고 좌우 여백까지 덮도록 음수 마진으로 넓힌다. */
 .resume-card h3 {
     color: var(--brand);
     font-size: 1.18rem;
-    margin-bottom: 16px;
     display: flex;
     align-items: center;
     gap: 10px;
     position: sticky;
-    top: -2px;
+    top: 0;
+    z-index: 2;
+    background: var(--card);
+    margin: 0 calc(var(--resume-pad) * -1) 10px;
+    padding: var(--resume-pad) var(--resume-pad) 12px;
 }
 
 .resume-card.highlight {
@@ -896,6 +906,9 @@ h2 {
 
 .resume-card.highlight h3 {
     color: #d97706;
+    /* 하이라이트 카드의 그라데이션 상단 색과 맞춘다 */
+    background-color: var(--card);
+    background-image: linear-gradient(rgba(245, 158, 11, 0.06), rgba(245, 158, 11, 0.06));
 }
 
 .info-row {

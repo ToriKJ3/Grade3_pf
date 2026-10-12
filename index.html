@@ -40,8 +40,8 @@
             <p style="font-size:1.05rem; opacity:0.92;">그리고 배운 것을 <strong>직접 코드로 만들어</strong> 세상에 내놓는 개발자입니다.</p>
 
             <div class="hero-stats">
-                <div class="hero-stat"><span class="num">10</span><span class="label">개발 프로젝트</span></div>
-                <div class="hero-stat"><span class="num">3</span><span class="label">라이브 서비스</span></div>
+                <div class="hero-stat"><span class="num">12</span><span class="label">개발 프로젝트</span></div>
+                <div class="hero-stat"><span class="num">4</span><span class="label">라이브 서비스</span></div>
                 <div class="hero-stat"><span class="num">18+</span><span class="label">기술 스택</span></div>
             </div>
 
@@ -88,7 +88,7 @@
                         <div class="interest-item">🎸 기타 (클래식, 핑거스타일)</div>
                         <div class="interest-item">🔬 과학 (화학, 천문, 물리)</div>
                         <div class="interest-item">📚 독서 (전 분야)</div>
-                        <div class="interest-item">🎹 피아노</div>
+                        <div class="interest-item">🏸 배드민턴</div>
                         <div class="interest-item">🎞️ 영상편집</div>
                     </div>
 
@@ -103,6 +103,8 @@
                             <span class="skill-tag">React</span>
                             <span class="skill-tag">Flask</span>
                             <span class="skill-tag">Electron</span>
+                            <span class="skill-tag">Three.js</span>
+                            <span class="skill-tag">Vite</span>
                         </div>
                     </div>
 
@@ -133,6 +135,7 @@
                             <span class="skill-tag" data-skill="90%">Python</span>
                             <span class="skill-tag" data-skill="90%">HTML/CSS</span>
                             <span class="skill-tag" data-skill="80%">JavaScript</span>
+                            <span class="skill-tag" data-skill="75%">TypeScript</span>
                             <span class="skill-tag" data-skill="75%">C#</span>
                             <span class="skill-tag" data-skill="65%">C / C++</span>
                         </div>
@@ -159,7 +162,7 @@
                 <span class="section-eyebrow">2025 – 2026</span>
                 <h2>개발 프로젝트</h2>
             </div>
-            <p class="section-sub">직접 기획하고 개발·배포한 소프트웨어 프로젝트입니다. 기획부터 개발, 배포까지 손수 진행했으며 3개 서비스는 실제로 운영 중입니다.</p>
+            <p class="section-sub">직접 기획하고 개발·배포한 소프트웨어 프로젝트입니다. 기획부터 개발, 배포까지 손수 진행했으며 4개 서비스는 실제로 운영 중입니다.</p>
             <div class="projects-grid" id="devGrid"></div>
         </div>
     </section>
@@ -192,8 +195,8 @@
                         <div class="cert-date">직무발명 제안서 초안 작성</div>
                     </div>
                     <div class="cert-item">
-                        <div class="cert-name">10개 소프트웨어 프로젝트 개발 · 3개 서비스 라이브 배포</div>
-                        <div class="cert-date">Flutter 앱 · 웹 서비스 · 데이터 분석</div>
+                        <div class="cert-name">12개 소프트웨어 프로젝트 개발 · 4개 서비스 라이브 배포</div>
+                        <div class="cert-date">Flutter 앱 · 웹 서비스 · 데이터 분석 · 3D 게임</div>
                     </div>
                     <div class="cert-item">
                         <div class="cert-name">금상(1위) — 데이터베이스 프로그래밍 경진대회</div>
@@ -476,6 +479,62 @@ for (int k = 1; k < perms.size(); k++) {
     checkout_time = f"{match_out.group(1)}:{match_out.group(2)}" if match_out else None
 
     return checkin_time, checkout_time, text_block</script>
+    <script type="text/plain" id="code-rhythm">// 판정 구간 — 노트 시각과 입력 시각의 차이(초)로 등급이 갈린다
+const JUDGES = [
+  {name:'MAX 100%', w:0.042, acc:1.00},   // ±42ms
+  {name:'PERFECT',  w:0.075, acc:0.90},
+  {name:'GREAT',    w:0.115, acc:0.70},
+  {name:'GOOD',     w:0.158, acc:0.40},
+];
+const MISS_W = 0.205;                      // 이보다 벗어나면 판정하지 않는다
+
+function onLaneDown(lane){
+  // 시간 기준은 언제나 AudioContext.currentTime 하나뿐이다.
+  // requestAnimationFrame이나 performance.now()를 섞으면 판정이 음악과 어긋난다.
+  const now = songTime();
+
+  // 해당 레인에서 아직 판정되지 않은 노트 중 가장 가까운 것
+  let best = null, bd = Infinity;
+  for(const n of app.chart){
+    if(n.lane !== lane || n.judged) continue;
+    const d = Math.abs(n.t - now);
+    if(d < bd){ bd = d; best = n; }
+    if(n.t - now > MISS_W) break;          // 채보는 시간순 정렬 — 더 볼 필요가 없다
+  }
+  if(!best || bd > MISS_W) return;         // 빈 레인을 쳐도 콤보가 끊기지 않는다
+
+  const j = JUDGES.find(j => bd <= j.w) || null;   // null이면 BREAK
+  showTiming(now, best.t, j);
+  judge(best, j, true);
+}</script>
+    <script type="text/plain" id="code-orbit">/** 렌더링과 분리한 규칙 — 넣었던 상태 그대로 꺼내는 수납 능력 */
+export const STORAGE_CAPACITY = 6;
+
+export interface StoredItem {
+  id: string;
+  name: string;
+  kind: 'rubble' | 'crystal' | 'bolt';
+  speed: number;        // 수납 당시의 속력을 그대로 보존한다
+  temperature: number;
+}
+
+export function canCapture(distance: number, targetRadius: number, slotsUsed: number): boolean {
+  return slotsUsed < STORAGE_CAPACITY && distance <= targetRadius + 1.35;
+}
+
+export function captureItem(inventory: StoredItem[], item: StoredItem): boolean {
+  if (inventory.length >= STORAGE_CAPACITY) return false;
+  if (inventory.some(value => value.id === item.id)) return false;   // 같은 물체를 두 번 넣지 않는다
+  inventory.push({ ...item });
+  return true;
+}
+
+/** 방출 — 저장해 둔 속력을 유지한 채 바라보는 방향으로만 바꿔 내보낸다.
+    날아오던 탄환을 잡아 되돌려 쏘는 전투가 여기서 성립한다. */
+export function releaseVelocity(item: StoredItem, dx: number, dz: number) {
+  const magnitude = Math.hypot(dx, dz) || 1;
+  return { x: item.speed * dx / magnitude, z: item.speed * dz / magnitude };
+}</script>
 
     <script>
         /* ========== 고3 개발 프로젝트 데이터 ========== */
@@ -490,6 +549,25 @@ for (int k = 1; k < perms.size(); k++) {
         };
 
         const devProjects = [
+            {
+                emoji: '🗡️', accent: G.forest, title: '아직 고르지 않은 답 · 3D 탐험 게임', period: '2026.10',
+                tagline: '지형·캐릭터·무기·애니메이션을 외부 에셋 없이 코드로만 만든 3D 탐험·전투 게임',
+                desc: '직접 쓴 원작 설정을 실제로 조작해 보려고 만든 3D 탐험 게임입니다. 바다에 둘러싸인 외계 유적 섬에서 생존자를 구하고 기억 단말을 모으며, 「넣었던 상태 그대로 꺼내는 수납 능력」이 전투에서 성립하는지 검증합니다. 게임 엔진이나 3D 편집기를 쓰지 않고 TypeScript + Three.js + Vite만으로 만들었으며, 지형·바다·건축물·캐릭터·무기와 관절 애니메이션까지 모두 코드로 생성해 외부 모델·텍스처·모션을 하나도 가져오지 않았습니다. 한 섬에서 약 5~10분 분량의 임무가 시작 컷신부터 엔딩까지 이어집니다.',
+                features: [
+                    '로우폴리 지형·바다·유적·NPC를 전부 코드로 생성 (외부 3D 에셋 0개)',
+                    '수납 능력 — 물체를 6칸 인벤토리에 넣고 저장된 속력 그대로 방출',
+                    '날아오는 탄환을 0.8초 수납 동작으로 포획해 되돌려 쏘는 전투',
+                    '도끼·직검·창·해머·쌍검 5종 무기 (위력·사거리·쿨타임을 각각 설계)',
+                    '우클릭 짧은 패링과 북쪽 기록고의 수호체(보스) 전투',
+                    '한국어 자막·음성 내레이션이 붙은 시작·마무리 실시간 컷신',
+                    'localStorage 저장 — 좌표·인벤토리·임무 단계를 검증 후 복원하고 손상된 저장은 거부',
+                    '렌더링과 분리한 게임 규칙 단위 테스트 + Playwright 브라우저 스모크 테스트'
+                ],
+                tech: ['TypeScript', 'Three.js', 'Vite', 'WebGL2', 'Web Audio', 'Playwright', 'node:test'],
+                live: null,
+                note: '무기 수치·인벤토리 규칙·임무 단계·저장 형식을 렌더링에서 떼어내 core.ts 한 곳에 모아, 브라우저 없이 테스트할 수 있게 했습니다. 수납한 물체를 고정 충돌체 목록에서 빼도록 설계해 「물체를 치우면 길이 열리는」 동작이 자연스럽게 나오도록 했습니다. 광대한 오픈월드 스트리밍과 정교한 강체 물리는 범위에서 제외하고, 수납 능력과 구조 중심 서사가 실제 조작으로 성립하는지에 집중했습니다.',
+                code: { file: 'core.ts · 수납과 방출 규칙', id: 'code-orbit' }
+            },
             {
                 emoji: '🌊', accent: G.cyan, title: 'Flood Zero · 침수 예방 로봇', period: '2026.07 ~ 08',
                 tagline: '거름망의 낙엽·쓰레기를 AI로 인식해 자동 수거하는 침수 예방 로봇 — 고교챌린지 최우수상',
@@ -515,6 +593,26 @@ for (int k = 1; k < perms.size(); k++) {
                     { src: 'images/aisw-motor.jpg',  cap: '쓰레기통 바닥 기울임 모터' }
                 ],
                 note: '인식은 AI가, 안전과 동작 결정은 명시적인 제어 정책이 담당하도록 분리했습니다. 실제 모터 자동 구동은 자체 데이터로 학습한 모델이 품질 기준(mask_map50 0.5 이상)을 넘겼을 때만 허용되고, 그 전까지는 모든 모터 명령을 차단하는 안전 잠금이 기본값입니다. 제어 정책, 날씨 해석과 재시도, 설정 로딩, 적재 상태 저장, 데이터셋 분할 · 라벨 점검, 비상 정지 유지, 끼임 감지까지 단위 테스트로 검증했습니다.'
+            },
+            {
+                emoji: '🎶', accent: G.grass, title: 'Rhythm Lab V · 4키 리듬게임', period: '2026.08 ~ 09',
+                tagline: '내 음원으로 곡을 추가하고 채보까지 직접 만드는 4키 리듬게임 — 에디터 · 순위표 포함',
+                desc: '즐겨 하던 리듬게임을 직접 만들어보고 싶어 시작한 웹 리듬게임입니다. 수록곡을 플레이하는 것으로 끝내지 않고, 자기 음원을 올려 곡을 추가하고 채보를 만들어 공유하는 에디터와 맵별 순위표까지 하나의 서비스로 묶었습니다. 수록곡은 음원 파일 없이 Web Audio API로 킥·스네어·클랩·하이햇·베이스·리드를 직접 합성해 브라우저에서 만들어내고, 재킷 이미지도 곡 ID를 시드로 Canvas에 그려냅니다. 모든 시간 계산을 AudioContext.currentTime 하나만 기준으로 삼아 판정이 음악과 어긋나지 않게 설계한 것이 핵심입니다.',
+                features: [
+                    'MAX · PERFECT · GREAT · GOOD 4단 판정(±42ms ~ ±158ms) · 롱노트 · 정확도 기반 랭크',
+                    '수록곡 음원을 Web Audio API로 실시간 합성 (외부 음원 파일 없음)',
+                    '채보 에디터 — 스냅 세분화 · 셋잇단 · 롱노트 · 테스트 플레이',
+                    '녹음 모드(R) — 곡을 들으며 직접 친 입력을 그대로 채보로 기록',
+                    '음원을 올리면 탭으로 BPM·오프셋을 잡고 난이도별 채보 자동 생성',
+                    '타이밍 보정 — 메트로놈을 따라 치면 기기별 입력 지연을 측정해 보정',
+                    'Google 로그인 · Firestore 기록 동기화 · 맵별 순위표',
+                    '커뮤니티 채보 제출 → 검수 → 공개 흐름 (Firestore 보안 규칙으로 권한 분리)',
+                    '.RLAB 파일로 곡·채보 내보내기/불러오기 · 레인 키 재설정 · 노트 속도 조절'
+                ],
+                tech: ['JavaScript', 'Web Audio API', 'Canvas', 'Firebase Auth', 'Firestore', 'Cloud Storage', 'Firebase Hosting'],
+                live: 'https://rhythm-2bbc4.web.app',
+                note: 'requestAnimationFrame이나 performance.now()를 시간 기준으로 섞으면 판정이 조금씩 밀린다는 것을 확인하고, 시계를 AudioContext.currentTime 하나로 통일했습니다. 레인 키를 자유롭게 바꿀 수 있게 하면서도 Esc·방향키처럼 다른 기능이 이미 쓰는 키는 배정할 수 없도록 예약 키 목록으로 막았습니다. 채보가 없는 난이도는 비활성으로 표시해 빈 화면으로 들어가지 않게 했습니다.',
+                code: { file: 'app.js · 노트 판정', id: 'code-rhythm' }
             },
             {
                 emoji: '⛽', accent: G.emerald, title: 'Jooyou · 차계부', period: '2026.06 ~ 진행 중',
