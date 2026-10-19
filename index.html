@@ -51,6 +51,9 @@
         <a href="#about" class="scroll-indicator" aria-label="아래로 이동"><span>SCROLL</span>↓</a>
     </section>
 
+    <!-- 우주에서 본문으로 자연스럽게 넘어가는 전환 띠 -->
+    <div class="hero-transition" aria-hidden="true"></div>
+
     <!-- ============ 소개 ============ -->
     <section id="about">
         <div class="section-inner">
@@ -181,8 +184,14 @@
                 <span class="section-eyebrow">Activities</span>
                 <h2>활동 &amp; 경험</h2>
             </div>
-            <p class="section-sub">대회·동아리·도제 실습 등 그동안 쌓아온 활동들입니다. 카드를 누르면 자세한 내용을 볼 수 있습니다.</p>
-            <div class="activity-grid" id="activityGrid"></div>
+            <p class="section-sub">대회·동아리·도제 실습까지, 2024년부터 쌓아온 활동을 시간 순으로 정리했습니다. 카드를 누르면 자세한 내용을 볼 수 있습니다.</p>
+
+            <div class="tl-legend reveal">
+                <span class="tl-legend-item"><i class="tl-dot-star"></i>주요 활동</span>
+                <span class="tl-legend-item"><i class="tl-dot-live"></i>진행 중</span>
+            </div>
+
+            <div class="timeline" id="activityTimeline"></div>
         </div>
     </section>
 
@@ -763,12 +772,12 @@ export function releaseVelocity(item: StoredItem, dx: number, dz: number) {
         /* ========== 고2 활동 데이터 ========== */
         const activities = [
             {
-                emoji: '🤖', title: '한국공학대학교 자율주행 자동차 경진대회', period: '2024.09.26',
+                emoji: '🤖', title: '한국공학대학교 자율주행 자동차 경진대회', period: '2024.09.26', star: true,
                 desc: '자율주행 인공지능을 학습시키는 역할을 주도적으로 수행했습니다. 딥러닝 모델을 구축하고 다양한 트레이닝 데이터를 수집해 자율주행 AI의 정확도를 높였으며, 팀원들과 협력해 모델을 자동차에 통합하고 실제 트랙에서 테스트했습니다.',
                 tags: ['인공지능', '자율주행', '딥러닝', '프로젝트 관리']
             },
             {
-                emoji: '💻', title: '정보기술기능경기대회 · 기능반', period: '2025.04.08 ~ 04.11',
+                emoji: '💻', title: '정보기술기능경기대회 · 기능반', period: '2025.04.08 ~ 04.11', star: true,
                 desc: '기능반에서 Java·C#으로 역대 지방·전국 기능경기대회 기출(도서 관리 시스템 등 데이터베이스 연동 프로그램)을 꾸준히 구현하며 준비했고, 알고리즘 최적화·DB 설계·UI 구현 등 여러 분야의 과제를 체계적으로 해결하며 실무 능력을 키웠습니다.',
                 tags: ['Java', 'C#', 'DB', '기능경기대회']
             },
@@ -825,7 +834,7 @@ export function releaseVelocity(item: StoredItem, dx: number, dz: number) {
                 tags: ['악보 제작', '청음', '기타', '핑거스타일']
             },
             {
-                emoji: '🧑🏻‍💼', title: '도제 — (주)어니언커뮤니케이션즈', period: '2025.05 ~',
+                emoji: '🧑🏻‍💼', title: '도제 — (주)어니언커뮤니케이션즈', period: '2025.05 ~', star: true,
                 desc: '클라이언트가 주문한 프로그램·웹을 제작하는 SI 회사 어니언커뮤니케이션즈에서 일학습병행제 도제로 참여하며, 웹 제작과 서버 구동 등 실무 지식을 배우고 있습니다.',
                 tags: ['도제', '일학습병행제', 'SI', '실무 경험']
             },
@@ -848,7 +857,7 @@ export function releaseVelocity(item: StoredItem, dx: number, dz: number) {
                     : '';
                 const tags = p.tech.slice(0, 4).map(t => `<span class="project-tag">${esc(t)}</span>`).join('');
                 return `
-                <article class="project-card reveal" onclick="openModal('dev',${i})">
+                <article class="project-card reveal" style="--d:${(Math.min(i, 5) * 0.07).toFixed(2)}s" onclick="openModal('dev',${i})">
                     <div class="project-cover" style="background:${p.accent}">${p.emoji}${livePill}${codePill}</div>
                     <div class="project-body">
                         <h3>${esc(p.title)}</h3>
@@ -863,14 +872,52 @@ export function releaseVelocity(item: StoredItem, dx: number, dz: number) {
             }).join('');
         }
 
+        /* '2025.04.08 ~ 04.11' 같은 표기에서 시작 시점을 숫자로 뽑는다 (정렬·연도 묶음용) */
+        function activityStart(period) {
+            const m = String(period).match(/(\d{4})(?:\.(\d{1,2}))?(?:\.(\d{1,2}))?/);
+            if (!m) return 0;
+            return (+m[1]) * 10000 + (+(m[2] || 1)) * 100 + (+(m[3] || 1));
+        }
+
         function renderActivities() {
-            document.getElementById('activityGrid').innerHTML = activities.map((a, i) => `
-                <article class="activity-card reveal" onclick="openModal('act',${i})">
-                    <div class="activity-emoji">${a.emoji}</div>
-                    <h3>${esc(a.title)}</h3>
-                    <p>${esc(a.desc.length > 80 ? a.desc.slice(0, 80) + '…' : a.desc)}</p>
-                    <span class="activity-meta">${esc(a.period)}${a.code ? ' &middot; <span class="code-hint">&lt;/&gt; 코드</span>' : ''}</span>
-                </article>`).join('');
+            const items = activities
+                .map((a, i) => ({ a, i, at: activityStart(a.period) }))
+                .sort((x, y) => y.at - x.at);
+
+            let html = '', shownYear = null, n = 0;
+            for (const { a, i, at } of items) {
+                const year = Math.floor(at / 10000);
+                if (year !== shownYear) {
+                    shownYear = year;
+                    html += `<div class="tl-year reveal"><span>${year}</span></div>`;
+                    n = 0;
+                }
+                const ongoing = /현재|~\s*$/.test(a.period);
+                const summary = a.desc.length > 108 ? a.desc.slice(0, 108) + '…' : a.desc;
+                const tags = (a.tags || []).slice(0, 4)
+                    .map(t => `<span class="tl-tag">${esc(t)}</span>`).join('');
+                html += `
+                <article class="tl-item reveal${a.star ? ' is-star' : ''}${ongoing ? ' is-live' : ''}"
+                         style="--d:${(Math.min(n, 6) * 0.06).toFixed(2)}s"
+                         tabindex="0" role="button" aria-label="${esc(a.title)} 자세히 보기"
+                         onclick="openModal('act',${i})"
+                         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openModal('act',${i});}">
+                    <div class="tl-node"><span>${a.emoji}</span></div>
+                    <div class="tl-card">
+                        <div class="tl-head">
+                            <span class="tl-date">${esc(a.period)}</span>
+                            ${ongoing ? '<span class="tl-badge">진행 중</span>' : ''}
+                            ${a.star ? '<span class="tl-badge star">주요</span>' : ''}
+                            ${a.code ? '<span class="tl-badge code">&lt;/&gt; 코드</span>' : ''}
+                        </div>
+                        <h3>${esc(a.title)}</h3>
+                        <p>${esc(summary)}</p>
+                        ${tags ? `<div class="tl-tags">${tags}</div>` : ''}
+                    </div>
+                </article>`;
+                n++;
+            }
+            document.getElementById('activityTimeline').innerHTML = html;
         }
 
         /* ========== 모달 ========== */
@@ -969,6 +1016,34 @@ export function releaseVelocity(item: StoredItem, dx: number, dz: number) {
                 entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
             }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
             document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+        }
+
+        /* ========== 숫자가 0부터 올라간다 ========== */
+        function initCountUp() {
+            const nums = document.querySelectorAll('.about-stat .num');
+            if (!nums.length) return;
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+            const io = new IntersectionObserver((entries) => {
+                entries.forEach(e => {
+                    if (!e.isIntersecting) return;
+                    io.unobserve(e.target);
+                    const el = e.target;
+                    const raw = el.textContent.trim();
+                    const target = parseInt(raw, 10);
+                    if (!Number.isFinite(target)) return;
+                    const suffix = raw.replace(/^\d+/, '');   // '18+' 의 '+' 를 지킨다
+                    const t0 = performance.now(), dur = 1100;
+                    el.textContent = '0' + suffix;
+                    (function step(t) {
+                        const k = Math.min((t - t0) / dur, 1);
+                        const eased = 1 - Math.pow(1 - k, 3);
+                        el.textContent = Math.round(target * eased) + suffix;
+                        if (k < 1) requestAnimationFrame(step);
+                    })(t0);
+                });
+            }, { threshold: 0.5 });
+            nums.forEach(el => io.observe(el));
         }
 
         /* ========== 히어로 — 네온 코드 레인 · 로켓 · 고양이 ==========
@@ -1382,6 +1457,7 @@ export function releaseVelocity(item: StoredItem, dx: number, dz: number) {
         initReveal();
         initHero();
         initNavOverHero();
+        initCountUp();
     </script>
 </body>
 
