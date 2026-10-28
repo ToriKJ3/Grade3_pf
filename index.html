@@ -63,7 +63,7 @@
             </div>
 
             <div class="about-stats reveal">
-                <div class="about-stat"><span class="num">12</span><span class="label">개발 프로젝트</span></div>
+                <div class="about-stat"><span class="num">13</span><span class="label">개발 프로젝트</span></div>
                 <div class="about-stat"><span class="num">4</span><span class="label">라이브 서비스</span></div>
                 <div class="about-stat"><span class="num">18+</span><span class="label">기술 스택</span></div>
             </div>
@@ -211,7 +211,7 @@
                         <div class="cert-date">직무발명 제안서 초안 작성</div>
                     </div>
                     <div class="cert-item">
-                        <div class="cert-name">12개 소프트웨어 프로젝트 개발 · 4개 서비스 라이브 배포</div>
+                        <div class="cert-name">13개 소프트웨어 프로젝트 개발 · 4개 서비스 라이브 배포</div>
                         <div class="cert-date">Flutter 앱 · 웹 서비스 · 데이터 분석 · 3D 게임</div>
                     </div>
                     <div class="cert-item">
@@ -495,6 +495,42 @@ for (int k = 1; k < perms.size(); k++) {
     checkout_time = f"{match_out.group(1)}:{match_out.group(2)}" if match_out else None
 
     return checkin_time, checkout_time, text_block</script>
+    <script type="text/plain" id="code-duru">/** 바이트만 보고 인코딩을 알아낸다.
+    한글 문서가 ???? 로 깨지는 건 대부분 EUC-KR 을 UTF-8 로 읽어서다. */
+export function detectEncoding(bytes: Uint8Array): DetectResult {
+  // 1. BOM 이 있으면 끝. 가장 확실한 단서다.
+  if (bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf)
+    return { encoding: 'utf-8', bom: true, confidence: 1 }
+  if (bytes[0] === 0xff && bytes[1] === 0xfe) return { encoding: 'utf-16le', bom: true, confidence: 1 }
+
+  // 2. BOM 없는 UTF-16 — 짝수/홀수 자리의 0 바이트 비율로 가린다
+  let evenZero = 0, oddZero = 0
+  for (let i = 0; i + 1 < sample.length; i += 2) {
+    if (sample[i] === 0) evenZero++
+    if (sample[i + 1] === 0) oddZero++
+  }
+  if (oddZero / pairs > 0.3 && evenZero / pairs < 0.05)
+    return { encoding: 'utf-16le', bom: false, confidence: 0.8 }
+
+  // 3. UTF-8 로 엄격하게 디코딩해본다.
+  //    파일 끝에서 잘린 멀티바이트 문자는 오류로 치지 않는다.
+  let utf8 = tryDecode(bytes, 'utf-8', true)
+  for (let cut = 1; cut <= 3 && utf8 === null; cut++)
+    utf8 = tryDecode(bytes.subarray(0, bytes.length - cut), 'utf-8', true)
+  if (utf8 !== null) return { encoding: 'utf-8', bom: false, confidence: 1 }
+
+  // 4. 여기까지 왔으면 레거시 인코딩. 디코딩해서 '그 언어다운 글자'가
+  //    얼마나 나오는지 점수를 매겨 고른다.
+  add('euc-kr',  COMMON_KO, isHangul, 0.15)   // 한국어 문서가 많으니 가산점
+  add('shift_jis', COMMON_JA, isKana)
+  add('gb18030', COMMON_ZH, isHan)
+  add('big5',    COMMON_ZH, isHan, -0.05)
+  candidates.sort((a, b) => b.score - a.score)
+
+  // 1등과 2등의 점수 차이를 그대로 신뢰도로 쓴다
+  const conf = Math.max(0.2, Math.min(0.95, 0.5 + (best.score - second.score) / 2))
+  return { encoding: best.enc, bom: false, confidence: conf }
+}</script>
     <script type="text/plain" id="code-rhythm">// 판정 구간 — 노트 시각과 입력 시각의 차이(초)로 등급이 갈린다
 const JUDGES = [
   {name:'MAX 100%', w:0.042, acc:1.00},   // ±42ms
@@ -565,6 +601,27 @@ export function releaseVelocity(item: StoredItem, dx: number, dz: number) {
         };
 
         const devProjects = [
+            {
+                emoji: '📝', accent: G.lime, title: '두루문서 · HWP 문서 편집기', period: '2026.10',
+                tagline: '한컴오피스 없이 HWP·HWPX를 열고 고치고 저장하는 데스크톱 문서 편집기',
+                desc: 'HWP·HWPX·DOC·DOCX·RTF·Markdown·HTML·CSS·TXT 9개 형식을 하나의 앱에서 열고 편집하고, PDF까지 10개 형식으로 내보내는 데스크톱 편집기입니다. 고2 때 만든 FormatGuard가 「변환하면 뭐가 깨지는지 미리 알려주는」 진단 웹이었다면, 두루문서는 아예 직접 읽고 쓰는 쪽으로 넘어간 다음 단계입니다. 한컴오피스가 없는 환경에서도 공문을 열어 고칠 수 있게 하는 것이 목표였고, HWP 5.0 바이너리 레코드 구조와 HWPX 스키마를 직접 구현했습니다. macOS(.dmg)와 Windows(.exe) 설치 파일까지 한 코드베이스에서 빌드합니다.',
+                features: [
+                    'HWP 5.0 바이너리 레코드 · HWPX 스키마를 직접 구현한 리더 · 라이터',
+                    '9개 형식 열기 → 편집 → PDF 포함 10개 형식으로 저장',
+                    '인코딩 자동 감지 — UTF-8/16 · EUC-KR · Shift_JIS · GB18030 · Big5 (깨진 한글 복구)',
+                    '하이퍼링크를 한글과 같은 진짜 링크 필드로 저장 (HWP %hlk, HWPX fieldBegin/End)',
+                    '표 행 높이 · 일부 변만 지정된 셀 테두리 · 내어쓰기 · 묶음 빈칸까지 보존',
+                    '한국어 띄어쓰기 · 맞춤법 교정 (물결 밑줄 + 고칠 말 제안)',
+                    '작업 폴더 트리 · 변경 추적 · 메모 · 찾기/바꾸기 · 쪽 보기',
+                    'HTML + CSS 미리보기 — CSS를 고치면 저장 없이 바로 반영',
+                    '덮어쓰기 전 원본 자동 백업, 비정상 종료 시 복구 파일',
+                    'GitHub Actions로 Windows · macOS 빌드와 실행 점검 자동화'
+                ],
+                tech: ['TypeScript', 'Electron', 'React', 'TipTap', 'ProseMirror', 'Vite', 'Vitest', 'JSZip', 'cfb', 'pako'],
+                live: null,
+                note: '가장 신경 쓴 부분은 「저장한 뒤에도 그대로인가」입니다. 실제 공문 4건(HWP 2 · HWPX 2)을 열기 → 저장 → 다시 열기 했을 때 문단·글자·표·그림·쪽 설정이 측정 항목 기준으로 모두 유지되는지 자동으로 셉니다. 제 코드가 제 코드를 검사하면 의미가 없어서, 출력물을 hwp.js · pyhwp · hwpxlib 세 가지 독립 파서로 교차 검증했습니다. 전체 15,485줄 중 형식 변환 엔진이 8,808줄이고, 이 엔진은 DOM·Node 의존 없는 순수 TypeScript로 분리해 나중에 웹·모바일에서 재사용할 수 있게 했습니다. 다만 세 파서를 통과했다고 해서 한컴오피스 한글에서 직접 열어본 것은 아니라, 그 검증은 아직 남아 있는 한계입니다.',
+                code: { file: 'encoding.ts · 인코딩 자동 감지', id: 'code-duru' }
+            },
             {
                 emoji: '🗡️', accent: G.forest, title: 'RPG 게임 제작', period: '2026.10',
                 tagline: '일반 프로그램 개발을 넘어 3D 그래픽 디자인까지 직접 도전하는 프로젝트',
