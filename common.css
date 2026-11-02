@@ -2036,3 +2036,10 @@ footer a:hover {
         gap: 16px;
     }
 }
+
+/* 기술 스택 설명 한 줄 */
+.skill-note {
+    font-size: 0.88rem;
+    color: var(--text-mute);
+    margin: -4px 0 18px;
+}
