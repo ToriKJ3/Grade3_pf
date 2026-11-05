@@ -30,7 +30,10 @@
         </div>
     </nav>
 
-    <!-- ============ 히어로 ============ -->
+    <!-- ============ 히어로 ============
+         스크롤이 페이지를 넘기는 대신 '카메라'를 움직인다.
+         .hero-stage 가 스크롤 활주로이고, .hero 는 그 안에 고정(sticky)된 무대다. -->
+    <div class="hero-stage" id="heroStage">
     <section id="hero" class="hero">
         <!-- 네온 코드 레인 · 로켓 · 고양이가 그려지는 캔버스 -->
         <canvas class="hero-canvas" id="heroCanvas" aria-hidden="true"></canvas>
@@ -48,8 +51,19 @@
             </div>
         </div>
 
+        <!-- 쏟아지던 코드가 느려지며 한 줄로 초점이 맞는다 -->
+        <div class="hero-focus" id="heroFocus" aria-hidden="true">
+            <div class="hero-focus-line"><span class="kw">while</span> (<span class="id">궁금하다</span>) { <span
+                    class="fn">만든다</span>(); }<i class="caret"></i></div>
+            <div class="hero-focus-cap">JEON KYUNG JUN</div>
+        </div>
+
+        <!-- 마지막에 아래 섹션 배경색으로 녹아들어 이음매를 지운다 -->
+        <div class="hero-blackout" id="heroBlackout" aria-hidden="true"></div>
+
         <a href="#about" class="scroll-indicator" aria-label="아래로 이동"><span>SCROLL</span>↓</a>
     </section>
+    </div>
 
     <!-- 우주에서 본문으로 자연스럽게 넘어가는 전환 띠 -->
     <div class="hero-transition" aria-hidden="true"></div>
@@ -1446,13 +1460,20 @@ export function releaseVelocity(item: StoredItem, dx: number, dz: number) {
             /* ── 루프 ── */
             function frame(t) {
                 if (!running) return;
-                const dt = Math.min((t - last) / 1000, 0.05) || 0;
+                const rawDt = Math.min((t - last) / 1000, 0.05) || 0;
                 last = t;
+
+                /* 스크롤이 내려갈수록 비가 느려지다 멎는다 — 카메라가 다가오며 시간이 멈추는 느낌 */
+                const prog = window.__heroProgress || 0;
+                const slow = 1 - 0.96 * Math.min(Math.max((prog - 0.04) / 0.52, 0), 1);
+                const dt = rawDt * slow;
 
                 /* 레인 레이어 — 알파만 깎아 긴 꼬리를 남긴다 */
                 ctx.globalCompositeOperation = 'destination-out';
-                /* 프레임이 흔들려도 꼬리 길이가 같도록 60fps 기준으로 환산한다 */
-                ctx.fillStyle = 'rgba(0,0,0,' + (1 - Math.pow(0.972, dt * 60)).toFixed(4) + ')';
+                /* 프레임이 흔들려도 꼬리 길이가 같도록 60fps 기준으로 환산한다.
+                   느려질수록 덜 지워서, 멈춘 장면이 사라지지 않고 그대로 남아 있게 한다. */
+                const keep = Math.pow(0.972, rawDt * 60 * (0.05 + 0.95 * slow));
+                ctx.fillStyle = 'rgba(0,0,0,' + (1 - keep).toFixed(4) + ')';
                 ctx.fillRect(0, 0, W, H);
                 ctx.globalCompositeOperation = 'source-over';
                 drawStars(t, dt);
@@ -1460,8 +1481,13 @@ export function releaseVelocity(item: StoredItem, dx: number, dz: number) {
 
                 /* FX 레이어 — 로켓·고양이는 번지면 안 되므로 매 프레임 지운다 */
                 fx.clearRect(0, 0, W, H);
-                drawCats(t, dt);
-                drawRocket(t, dt);
+                if (prog < 0.34) {
+                    drawCats(t, dt);
+                    drawRocket(t, dt);
+                } else {
+                    cats.length = 0;
+                    rocket = null;
+                }
 
                 raf = requestAnimationFrame(frame);
             }
@@ -1532,14 +1558,105 @@ export function releaseVelocity(item: StoredItem, dx: number, dz: number) {
             }
         }
 
+        /* ========== 히어로 카메라 — 스크롤이 카메라를 민다 ==========
+           토스 메인처럼, 스크롤이 '다음 섹션으로 넘기는 버튼'이 아니라
+           장면을 감는 손잡이가 된다. 영상 대신 코드 레인이 피사체다.
+             0.00 ~ 0.34  이름 패널이 물러난다
+             0.04 ~ 0.56  쏟아지던 코드가 느려지다 멎는다
+             0.30 ~ 0.78  배경에서 초점이 빠지고 코드 한 줄로 옮겨간다
+             0.86 ~ 1.00  아래 섹션 배경색으로 녹아 이음매를 지운다 */
+        function initHeroCamera() {
+            const stage = document.getElementById('heroStage');
+            const hero = document.getElementById('hero');
+            if (!stage || !hero) return;
+
+            const panel = hero.querySelector('.hero-content');
+            const focus = document.getElementById('heroFocus');
+            const blackout = document.getElementById('heroBlackout');
+            const indicator = hero.querySelector('.scroll-indicator');
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+            /* 구간 [a,b] 안에서의 진행도 0~1 */
+            const seg = (v, a, b) => Math.min(Math.max((v - a) / (b - a), 0), 1);
+            const ease = t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+            function reset() {
+                window.__heroProgress = 0;
+                hero.style.removeProperty('--zoom');
+                hero.style.removeProperty('--rain-dim');
+                hero.style.removeProperty('--rain-filter');
+                panel.style.cssText = '';
+                focus.style.cssText = '';
+                introCleared = false;
+                blackout.style.opacity = '0';
+                if (indicator) indicator.style.opacity = '';
+            }
+
+            /* 등장 애니메이션(heroPanelIn)은 fill-mode: both 라서 인라인 스타일을 덮는다.
+               CSS 애니메이션이 일반 선언보다 우선하기 때문이다.
+               스크롤이 시작되면 이미 등장은 끝난 뒤이므로 애니메이션을 떼어낸다. */
+            let introCleared = false;
+
+            let ticking = false;
+            function apply() {
+                ticking = false;
+                if (reduceMotion.matches) return;
+
+                const runway = stage.offsetHeight - window.innerHeight;
+                const p = runway > 0 ? Math.min(Math.max(window.scrollY / runway, 0), 1) : 0;
+                window.__heroProgress = p;   // 캔버스 루프가 읽어 비를 늦춘다
+
+                if (!introCleared && p > 0.001) {
+                    panel.style.animation = 'none';
+                    introCleared = true;
+                }
+
+                /* 이름 패널 퇴장 */
+                const out = ease(seg(p, 0, 0.34));
+                panel.style.opacity = (1 - out).toFixed(3);
+                panel.style.transform = `translateY(${(-42 * out).toFixed(1)}px) scale(${(1 - 0.08 * out).toFixed(3)})`;
+                panel.style.pointerEvents = out > 0.85 ? 'none' : '';
+
+                /* 배경은 밀려들어오며 초점이 빠진다.
+                   blur 는 0.5px 단위로 끊어 불필요한 재합성을 줄인다. */
+                const dolly = ease(p);
+                hero.style.setProperty('--zoom', (1 + 0.32 * dolly).toFixed(3));
+                hero.style.setProperty('--rain-dim', (1 - 0.74 * seg(p, 0.10, 0.72)).toFixed(3));
+                const blur = Math.round(seg(p, 0.18, 0.80) * 10) / 2;   // 0.5px 단위, 최대 5px
+                hero.style.setProperty('--rain-filter', blur > 0 ? `blur(${blur}px)` : 'none');
+
+                /* 코드 한 줄로 초점이 맞고(0.28~0.62), 잠시 머물다(~0.80), 물러난다(~0.90).
+                   배경이 밝아지기 전에 글자가 완전히 사라져야 크로스페이드가 탁해지지 않는다. */
+                const inn = seg(p, 0.28, 0.62);
+                const bye = seg(p, 0.80, 0.90);
+                focus.style.opacity = (inn * (1 - bye)).toFixed(3);
+                focus.style.transform = `translate(-50%, -50%) scale(${(0.54 + 0.46 * ease(inn)).toFixed(3)})`;
+                focus.style.filter = `blur(${((1 - inn) * 13).toFixed(1)}px)`;
+
+                blackout.style.opacity = seg(p, 0.90, 1).toFixed(3);
+                if (indicator) indicator.style.opacity = (1 - seg(p, 0, 0.12)).toFixed(3);
+            }
+
+            function onScroll() {
+                if (!ticking) { ticking = true; requestAnimationFrame(apply); }
+            }
+
+            window.addEventListener('scroll', onScroll, { passive: true });
+            window.addEventListener('resize', apply);
+            reduceMotion.addEventListener('change', () => { reset(); apply(); });
+            apply();
+        }
+
         /* ========== 히어로 위에서는 네비게이션을 투명하게 ========== */
         function initNavOverHero() {
             const navEl = document.querySelector('nav');
             const heroEl = document.getElementById('hero');
             if (!navEl || !heroEl) return;
             let ticking = false;
+            const stageEl = document.getElementById('heroStage');
             const sync = () => {
-                navEl.classList.toggle('over-hero', window.scrollY < heroEl.offsetHeight - 90);
+                const h = (stageEl || heroEl).offsetHeight;
+                navEl.classList.toggle('over-hero', window.scrollY < h - 90);
                 ticking = false;
             };
             sync();
@@ -1554,6 +1671,7 @@ export function releaseVelocity(item: StoredItem, dx: number, dz: number) {
         renderActivities();
         initReveal();
         initHero();
+        initHeroCamera();
         initNavOverHero();
         initCountUp();
     </script>

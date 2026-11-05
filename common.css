@@ -108,15 +108,28 @@ body::after {
     background: transparent;
 }
 
-/* 우주 → 본문 전환 */
+/* 우주 → 본문 전환.
+   카메라 연출이 켜져 있으면 히어로가 이미 아래 섹션 색으로 녹아들며 끝나므로,
+   여기서 다시 어두워지면 검은 띠가 생긴다. 그래서 평소에는 배경색만 깔아 둔다. */
 .hero-transition {
     height: 92px;
-    margin-top: -1px;
-    background: linear-gradient(180deg, #03100c 0%, var(--bg-alt) 100%);
+    margin-top: -3px;
+    background: var(--bg-alt);
 }
 
 [data-theme="dark"] .hero-transition {
-    background: linear-gradient(180deg, #03100c 0%, #060f0c 100%);
+    background: transparent;
+}
+
+/* 연출이 꺼진 경우에만 원래의 그라데이션으로 이음매를 메운다 */
+@media (prefers-reduced-motion: reduce) {
+    .hero-transition {
+        background: linear-gradient(180deg, #03100c 0%, var(--bg-alt) 100%);
+    }
+
+    [data-theme="dark"] .hero-transition {
+        background: linear-gradient(180deg, #03100c 0%, #060f0c 100%);
+    }
 }
 
 body {
@@ -235,11 +248,24 @@ nav ul a:hover::after {
 }
 
 /* ============ 히어로 ============ */
+/* 스크롤 활주로 — 이 높이만큼 내려가는 동안 히어로가 고정된 채 연출이 진행된다 */
+.hero-stage {
+    position: relative;
+    height: 260vh;
+    /* 끝에서 1px 이음매가 비쳐도 도착 색이 보이도록 깔아 둔다 */
+    background: var(--bg-alt);
+}
+
+[data-theme="dark"] .hero-stage {
+    background: transparent;
+}
+
 .hero {
     /* 히어로는 테마와 무관하게 항상 우주(어두운 배경)다. */
-    position: relative;
-    min-height: 100vh;
-    min-height: 100svh;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    height: 100svh;
     display: grid;
     place-items: center;
     text-align: center;
@@ -263,7 +289,7 @@ nav ul a:hover::after {
         radial-gradient(30% 26% at 10% 78%, rgba(14, 165, 233, 0.18), transparent 72%);
     filter: blur(6px);
     opacity: 0.92;
-    transform: translate3d(var(--px, 0px), var(--py, 0px), 0);
+    transform: translate3d(var(--px, 0px), var(--py, 0px), 0) scale(var(--zoom, 1));
     transition: transform 0.9s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
@@ -274,6 +300,14 @@ nav ul a:hover::after {
     display: block;
     width: 100%;
     height: 100%;
+    /* 스크롤이 진행되면 배경에서 초점이 빠진다 (랙 포커스) */
+    transform: scale(var(--zoom, 1));
+    transform-origin: 50% 46%;
+    opacity: var(--rain-dim, 1);
+    /* blur(0px) 도 합성 레이어를 만든다. 페이지 최상단(연출 전)에서는
+       filter 자체를 none 으로 두어 60fps 레인에 부담을 주지 않는다. */
+    filter: var(--rain-filter, none);
+    will-change: transform, opacity;
 }
 
 .hero-canvas-fx {
@@ -2042,4 +2076,115 @@ footer a:hover {
     font-size: 0.88rem;
     color: var(--text-mute);
     margin: -4px 0 18px;
+}
+
+/* =========================================================
+   히어로 카메라 — 스크롤이 카메라를 민다
+   배경(코드 레인)에서 초점이 빠지고, 코드 한 줄로 초점이 옮겨간다.
+   ========================================================= */
+.hero-focus {
+    position: absolute;
+    left: 50%;
+    top: 46%;
+    z-index: 4;
+    width: min(92vw, 1000px);
+    text-align: center;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.52);
+    pointer-events: none;
+    will-change: transform, opacity, filter;
+}
+
+.hero-focus-line {
+    font: 800 clamp(1.15rem, 4.3vw, 2.9rem)/1.35 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    letter-spacing: -0.02em;
+    color: #eafff8;
+    white-space: nowrap;
+    text-shadow: 0 0 30px rgba(94, 234, 212, 0.5), 0 0 90px rgba(16, 185, 129, 0.3);
+}
+
+.hero-focus-line .kw {
+    color: #a78bfa;
+}
+
+.hero-focus-line .id {
+    color: #5eead4;
+}
+
+.hero-focus-line .fn {
+    color: #fbbf24;
+}
+
+.hero-focus-line .caret {
+    display: inline-block;
+    width: 0.09em;
+    height: 0.95em;
+    vertical-align: -0.1em;
+    margin-left: 0.14em;
+    background: #5eead4;
+    box-shadow: 0 0 14px #5eead4;
+    animation: caretBlink 1.1s steps(1) infinite;
+}
+
+@keyframes caretBlink {
+
+    0%,
+    49% {
+        opacity: 1;
+    }
+
+    50%,
+    100% {
+        opacity: 0;
+    }
+}
+
+.hero-focus-cap {
+    margin-top: 24px;
+    font: 700 clamp(0.66rem, 1.5vw, 0.86rem) ui-monospace, SFMono-Regular, Menlo, monospace;
+    letter-spacing: 0.42em;
+    text-indent: 0.42em;
+    color: #7fb8a4;
+}
+
+/* 마지막 구간에서 아래 섹션 배경으로 녹아든다 */
+.hero-blackout {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    opacity: 0;
+    pointer-events: none;
+    background: var(--bg-alt);
+}
+
+[data-theme="dark"] .hero-blackout {
+    background: #060f0c;
+}
+
+@media (max-width: 768px) {
+    .hero-stage {
+        height: 210vh;
+    }
+}
+
+/* 모션을 줄여달라고 한 사용자에게는 카메라 연출 자체를 끈다 */
+@media (prefers-reduced-motion: reduce) {
+    .hero-stage {
+        height: auto;
+    }
+
+    .hero {
+        position: relative;
+        height: auto;
+        min-height: 100vh;
+    }
+
+    .hero-focus,
+    .hero-blackout {
+        display: none;
+    }
+
+    .hero-focus-line .caret {
+        animation: none;
+    }
 }
