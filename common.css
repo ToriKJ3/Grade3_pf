@@ -142,7 +142,9 @@ body {
 }
 
 /* ============ 네비게이션 ============ */
-nav {
+/* 상단 바. 좌측 인덱스 레일도 <nav> 라서 여기서 빼둔다 —
+   안 그러면 레일이 화면 전체 폭의 배경판을 뒤집어쓴다. */
+nav:not(.index-rail) {
     position: fixed;
     top: 0;
     width: 100%;
@@ -2186,5 +2188,213 @@ footer a:hover {
 
     .hero-focus-line .caret {
         animation: none;
+    }
+}
+
+/* ============================================================
+   좌측 인덱스 레일 — 지금 어느 섹션의 어디쯤인지
+   눈금 하나가 섹션 하나다. 현재 섹션의 눈금만 길게 늘어나고,
+   그 안을 색이 왼쪽에서 오른쪽으로 채워가며 진행도를 그린다.
+   ============================================================ */
+:root {
+    --rail-dim: rgba(43, 47, 51, .24);
+    --rail-on: #10b981;
+}
+
+[data-theme="dark"] {
+    --rail-dim: rgba(232, 242, 236, .26);
+    --rail-on: #6ee7b7;
+}
+
+.index-rail {
+    position: fixed;
+    left: 14px;
+    top: 50%;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transform: translateY(-50%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .45s ease;
+}
+
+.index-rail.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.index-rail a {
+    display: block;
+    padding: 6px 0;
+    position: relative;
+    text-decoration: none;
+    line-height: 0;
+}
+
+/* 눈금의 바탕 — 섹션 하나의 전체 길이 */
+.index-rail .tick {
+    display: block;
+    position: relative;
+    width: 32px;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--rail-dim);
+    transform: scaleX(var(--s, .34));
+    transform-origin: 0 50%;
+    transition: transform .45s cubic-bezier(.22, 1, .36, 1);
+}
+
+/* 채워지는 막대 — 현재 섹션에서만 보인다 */
+.index-rail .tick::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--rail-on);
+    transform: scaleX(var(--f, 0));
+    transform-origin: 0 50%;
+    opacity: var(--o, 0);
+    transition: opacity .3s ease;
+}
+
+/* 이름표 — 레일에 마우스를 올리면 한꺼번에 나타난다 */
+.index-rail a::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 42px;
+    top: 50%;
+    transform: translateY(-50%) translateX(-8px);
+    opacity: 0;
+    white-space: nowrap;
+    font-size: .74rem;
+    font-weight: 600;
+    letter-spacing: .02em;
+    line-height: 1;
+    color: var(--text-mute);
+    /* 화면이 빠듯하면 이름표가 본문 카드 위를 지난다. 알약 배경을 깔아 읽히게 한다. */
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    pointer-events: none;
+    transition: opacity .28s ease, transform .28s cubic-bezier(.22, 1, .36, 1);
+}
+
+.index-rail:hover a::before {
+    opacity: .55;
+    transform: translateY(-50%) translateX(0);
+}
+
+.index-rail:hover a.on::before,
+.index-rail a:hover::before {
+    opacity: 1;
+    color: var(--rail-on);
+}
+
+.index-rail a:hover .tick {
+    transform: scaleX(.62);
+}
+
+.index-rail a.on:hover .tick {
+    transform: scaleX(1);
+}
+
+@media (max-width: 1319px) {
+    .index-rail {
+        display: none;
+    }
+}
+
+/* ============================================================
+   단어 단위 등장 — 위에서 한 단어씩 떨어져 자리를 잡는다
+   ============================================================ */
+.wr {
+    display: inline-block;
+    will-change: transform, opacity;
+}
+
+.word-rise .wr {
+    opacity: 0;
+    transform: translateY(-38px);
+    transition: opacity .62s cubic-bezier(.22, 1, .36, 1),
+                transform .62s cubic-bezier(.22, 1, .36, 1);
+    transition-delay: calc(var(--i, 0) * 65ms);
+}
+
+.word-rise.in .wr {
+    opacity: 1;
+    transform: none;
+}
+
+/* ============================================================
+   맺음말 — 스크롤이 문장을 한 단어씩 끌어내린다
+   ============================================================ */
+.closing {
+    padding: 150px 0 40px;
+}
+
+.closing-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px;
+    text-align: center;
+}
+
+.closing h2 {
+    margin: 0;
+    word-break: keep-all;
+    font-size: clamp(1.9rem, 5.2vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.3;
+    letter-spacing: -.025em;
+    color: var(--text);
+}
+
+.closing h2 .accent {
+    background: var(--grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.closing .sub {
+    margin: 28px auto 0;
+    max-width: 30ch;
+    font-size: 1.02rem;
+    color: var(--text-mute);
+    word-break: keep-all;
+    opacity: 0;
+}
+
+@media (max-width: 768px) {
+    .closing {
+        padding: 110px 0 30px;
+    }
+}
+
+[data-theme="dark"] .closing {
+    background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .index-rail .tick,
+    .index-rail .tick::after,
+    .index-rail a::before {
+        transition: none;
+    }
+
+    .word-rise .wr,
+    .closing .wr {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none;
+    }
+
+    .closing .sub {
+        opacity: 1;
     }
 }

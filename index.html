@@ -30,6 +30,16 @@
         </div>
     </nav>
 
+    <!-- ============ 좌측 인덱스 레일 ============
+         눈금 하나가 섹션 하나다. 현재 섹션만 길게 늘어나고 그 안이 채워진다. -->
+    <nav class="index-rail" id="indexRail" aria-label="섹션 바로가기">
+        <a href="#about" data-label="소개" aria-label="소개 섹션으로 이동"><span class="tick"></span></a>
+        <a href="#dev-projects" data-label="개발 프로젝트" aria-label="개발 프로젝트 섹션으로 이동"><span class="tick"></span></a>
+        <a href="#activities" data-label="활동 &amp; 경험" aria-label="활동 &amp; 경험 섹션으로 이동"><span class="tick"></span></a>
+        <a href="#resume" data-label="이력 · 성적 · 자격" aria-label="이력 · 성적 · 자격 섹션으로 이동"><span class="tick"></span></a>
+        <a href="#contact" data-label="연락처" aria-label="연락처 섹션으로 이동"><span class="tick"></span></a>
+    </nav>
+
     <!-- ============ 히어로 ============
          스크롤이 페이지를 넘기는 대신 '카메라'를 움직인다.
          .hero-stage 가 스크롤 활주로이고, .hero 는 그 안에 고정(sticky)된 무대다. -->
@@ -397,6 +407,15 @@
                 </div>
 
             </div>
+        </div>
+    </section>
+
+    <!-- ============ 맺음말 ============
+         스크롤이 문장을 한 단어씩 끌어내린다. -->
+    <section class="closing" id="closing">
+        <div class="closing-inner">
+            <h2>호기심에서 시작해서<br><span class="accent">쓰이는 것으로</span> 끝냅니다.</h2>
+            <p class="sub">지금도 5개의 프로젝트가 실제로 돌아가고 있습니다.</p>
         </div>
     </section>
 
@@ -1666,6 +1685,165 @@ export function releaseVelocity(item: StoredItem, dx: number, dz: number) {
             window.addEventListener('resize', sync);
         }
 
+        /* ========== 좌측 인덱스 레일 ==========
+           눈금 하나가 섹션 하나다. 지금 보고 있는 섹션의 눈금만 길게 펴지고,
+           그 안쪽 막대가 섹션 안에서의 진행도만큼 왼쪽부터 채워진다.
+           길이(--s)는 CSS 트랜지션에 맡겨 섹션이 바뀔 때 부드럽게 펴고 접고,
+           채움(--f)은 스크롤이 직접 끌기 때문에 트랜지션 없이 매 프레임 쓴다. */
+        function initIndexRail() {
+            const rail = document.getElementById('indexRail');
+            if (!rail) return;
+            const items = [...rail.querySelectorAll('a')]
+                .map(a => ({ a, tick: a.querySelector('.tick'), sec: document.querySelector(a.getAttribute('href')) }))
+                .filter(o => o.sec && o.tick);
+            if (!items.length) return;
+
+            const stage = document.getElementById('heroStage');
+            let ticking = false;
+
+            function sync() {
+                ticking = false;
+                const y = window.scrollY;
+                const probe = y + window.innerHeight * 0.38;   // 화면 위쪽 38% 지점을 '읽고 있는 줄'로 본다
+
+                // 히어로 카메라가 끝나갈 즈음에 나타난다
+                const heroH = stage ? stage.offsetHeight : 0;
+                const runway = Math.max(heroH - window.innerHeight, 0);
+                rail.classList.toggle('show', y > runway * 0.85);
+
+                let active = -1;
+                items.forEach((o, i) => {
+                    const r = o.sec.getBoundingClientRect();
+                    const top = r.top + y;
+                    const h = r.height || 1;
+                    o.p = Math.min(Math.max((probe - top) / h, 0), 1);
+                    if (o.p > 0 && o.p < 1) active = i;
+                });
+                // 섹션 사이 틈에 있으면 가장 가까운 쪽을 잡아둔다
+                if (active < 0) active = items[0].p <= 0 ? 0 : items.length - 1;
+
+                // 페이지 끝에서는 마지막 눈금을 끝까지 채운다.
+                // 마지막 섹션은 화면보다 짧아서 탐침이 그 안을 다 지나지 못한다.
+                if (y + window.innerHeight >= document.documentElement.scrollHeight - 2) {
+                    active = items.length - 1;
+                    items[active].p = 1;
+                }
+
+                items.forEach((o, i) => {
+                    const on = i === active;
+                    o.tick.style.setProperty('--f', o.p.toFixed(3));
+                    o.tick.style.setProperty('--s', on ? '1' : '.34');
+                    o.tick.style.setProperty('--o', on ? '1' : '0');
+                    o.a.classList.toggle('on', on);
+                    if (on) o.a.setAttribute('aria-current', 'true');
+                    else o.a.removeAttribute('aria-current');
+                });
+            }
+
+            sync();
+            window.addEventListener('scroll', () => {
+                if (!ticking) { ticking = true; requestAnimationFrame(sync); }
+            }, { passive: true });
+            window.addEventListener('resize', sync);
+        }
+
+        /* ========== 문장을 단어로 쪼갠다 ==========
+           <br> 같은 태그는 그대로 두고 글자만 단어 단위 span 으로 감싼다.
+           각 span 에는 순번(--i)이 붙어서 CSS 쪽에서 차례로 늦출 수 있다. */
+        function splitWords(el) {
+            if (!el) return [];
+            if (el.dataset.wsplit) return [...el.querySelectorAll('.wr')];
+            const frag = document.createDocumentFragment();
+            let i = 0;
+            const wrap = (node, cls) => {
+                node.textContent.split(/(\s+)/).forEach(tok => {
+                    if (!tok) return;
+                    if (/^\s+$/.test(tok)) { frag.appendChild(document.createTextNode(' ')); return; }
+                    const sp = document.createElement('span');
+                    sp.className = cls ? 'wr ' + cls : 'wr';
+                    sp.textContent = tok;
+                    sp.style.setProperty('--i', i++);
+                    frag.appendChild(sp);
+                });
+            };
+            [...el.childNodes].forEach(n => {
+                if (n.nodeType === 3) { wrap(n, ''); return; }
+                if (n.nodeType === 1 && n.childNodes.length === 1 && n.firstChild.nodeType === 3) {
+                    // <span class="accent"> 처럼 글자만 든 태그는 그 클래스를 단어마다 물려준다
+                    wrap(n.firstChild, n.className);
+                    return;
+                }
+                frag.appendChild(n.cloneNode(true));
+            });
+            el.textContent = '';
+            el.appendChild(frag);
+            el.dataset.wsplit = '1';
+            return [...el.querySelectorAll('.wr')];
+        }
+
+        /* ========== 섹션 제목이 한 단어씩 떨어진다 ========== */
+        function initWordRise() {
+            const heads = document.querySelectorAll('.section-head h2');
+            if (!heads.length) return;
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+            const io = new IntersectionObserver(entries => {
+                entries.forEach(e => {
+                    if (!e.isIntersecting) return;
+                    io.unobserve(e.target);
+                    e.target.classList.add('in');
+                });
+            }, { threshold: 0.4 });
+
+            heads.forEach(h => { splitWords(h); h.classList.add('word-rise'); io.observe(h); });
+        }
+
+        /* ========== 맺음말 — 스크롤이 문장을 끌어내린다 ==========
+           제목 전체를 한 번에 띄우지 않고, 스크롤 진행도 안에서 단어마다
+           자기 구간을 나눠 가진다. 되감으면 그대로 되돌아간다. */
+        function initClosing() {
+            const sec = document.getElementById('closing');
+            if (!sec) return;
+            const words = splitWords(sec.querySelector('h2'));
+            const sub = sec.querySelector('.sub');
+            if (!words.length) return;
+
+            const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+            const clamp = v => Math.min(Math.max(v, 0), 1);
+            const ease = t => 1 - Math.pow(1 - t, 3);
+            let ticking = false;
+
+            function show() {
+                words.forEach(w => { w.style.opacity = '1'; w.style.transform = 'none'; });
+                if (sub) sub.style.opacity = '1';
+            }
+
+            function sync() {
+                ticking = false;
+                if (reduce.matches) { show(); return; }
+                const r = sec.getBoundingClientRect();
+                const vh = window.innerHeight;
+                // 블록의 윗변이 화면 88% 지점에 닿을 때 0, 32% 지점까지 올라오면 1
+                const p = clamp((vh * 0.88 - r.top) / (vh * 0.56));
+                const n = words.length;
+                const span = 0.58;                       // 단어 하나가 쓰는 구간의 폭
+                words.forEach((w, i) => {
+                    const start = (i / n) * (1 - span);
+                    const k = ease(clamp((p - start) / span));
+                    w.style.opacity = k.toFixed(3);
+                    w.style.transform = k >= 1 ? 'none' : 'translateY(' + (-40 * (1 - k)).toFixed(1) + 'px)';
+                });
+                if (sub) sub.style.opacity = clamp((p - 0.74) / 0.2).toFixed(3);
+            }
+
+            sync();
+            window.addEventListener('scroll', () => {
+                if (!ticking) { ticking = true; requestAnimationFrame(sync); }
+            }, { passive: true });
+            window.addEventListener('resize', sync);
+            reduce.addEventListener('change', sync);
+        }
+
         /* ========== 초기화 ========== */
         renderDev();
         renderActivities();
@@ -1674,6 +1852,9 @@ export function releaseVelocity(item: StoredItem, dx: number, dz: number) {
         initHeroCamera();
         initNavOverHero();
         initCountUp();
+        initIndexRail();
+        initWordRise();
+        initClosing();
     </script>
 </body>
 
